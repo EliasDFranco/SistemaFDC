@@ -3,11 +3,13 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3 #Importamos la libreria de la BD
 class Ventas(tk.Frame):
-    db_name = "database_fdc.db" #Variable declarada para hacer la conexión con el archivo de la DB
+    db_name = "Database/database_fdc.db" #Variable declarada para hacer la conexión con el archivo de la DB
     
     def __init__(self, parent):
         super().__init__(parent)
         self.numeroFacturaActual = self.obtener_numeroFacturaActual()
+        self.numeroFactura = tk.StringVar(value=self.numeroFacturaActual) # 28-04-2025 Agregando la inicialización del atributo de 
+                                                                                # numeroFacturaActual al constructur
         self.widgets()
         self.mostrarNumeroFactura()
         
