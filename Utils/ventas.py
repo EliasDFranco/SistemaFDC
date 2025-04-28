@@ -307,7 +307,7 @@ class Ventas(tk.Frame):
             conn.close()
 
     def mostrarNumeroFactura(self):
-        self.NumeroFactura.set(self.numeroFacturaActual)
+        self.numeroFactura.set(self.numeroFacturaActual)
 
     def abrirVentanaFactura(self):
         ventanaFacturas = Toplevel
