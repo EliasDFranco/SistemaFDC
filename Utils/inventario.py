@@ -1,11 +1,15 @@
 from tkinter import *
 import tkinter as tk
 from tkinter import ttk, messagebox
+import sqlite3 #Importamos sqlite3
 
-class Inventario(tk.Frame):
+class Inventario(tk.Frame): 
+    db_name = "Database/database_fdc.db" # Aquí conecto la bd a una variable
     def __init__(self, padre):
         super().__init__(padre)
         self.pack()
+        self.com = sqlite3.connect(self.db_name)
+        self.cursor = self.com.cursor # Cursor que permite hacer las consultas que necesitamos
         self.widgets()
 
     def widgets(self):
@@ -85,12 +89,45 @@ class Inventario(tk.Frame):
         self.tre.column("PRECIO", width=100, anchor="center")
         self.tre.column("COSTO", width=100, anchor="center")
         self.tre.column("STOCK", width=70, anchor="center")
-
-
-
-
-
-
         
-
-
+        self.mostrarInventario() # Llamo a la funciónn mostrar inventario para que me muestre en el apartado de "Inventarios", los productos que hya disponible
+        botonActualizar = Button(frame2, text="Actualizar inventario", font="sans 14 bold", command=self.actualizarInventario)
+        botonActualizar.place(x=440, y=480, width=260, height=50)
+    #29-04-2025
+    def ejeConsulta(self, consulta, parametros=()):
+        with sqlite3.connect(self.db_name) as conn:
+            cursor = conn.cursor()
+            result = cursor.execute(consulta, parametros)
+            conn.commit()
+        return result
+    
+    def validacion(self, nombre, prov, precio, costo, stock):
+        if not (nombre and prov and precio and costo and stock):
+            return False 
+        try: 
+            float(precio)
+            float(costo)
+            int(stock)
+        except ValueError:
+            return False
+        return True
+    
+    def mostrarInventario(self):
+        consulta = "SELECT * FROM inventario ORDER BY id DESC"
+        result =  self.ejeConsulta(consulta)
+        for elemento in result:
+            try: 
+                precioGS = "GS {:,.0f}".format(float(elemento[3])) if elemento[3] else ""
+                costoGS = "GS {:,.0f}".format(float(elemento[4])) if elemento[4] else ""
+            except ValueError: 
+                precioGS = elemento[3]
+                costoGS = elemento[4]
+            self.tre.insert("", 0 , text=elemento[0], values=(elemento[1], elemento[2], precioGS, costoGS, elemento[5]))
+            
+    def actualizarInventario(self):
+        for item in self.tre.get_children():
+            self.tre.delete(item)
+            
+        self.mostrarInventario()
+        
+        messagebox.showinfo("Actualización", "El inventario ha sido actualizado correctamente")
