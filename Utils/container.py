@@ -21,6 +21,12 @@ class Container(tk.Frame):
             
             top_level.geometry("1100x650+120+20")
             top_level.resizable(False, False)
+            
+            # Permite que la ventana de inicio se superponga a Ventas o Inventario
+            top_level.transient(self.master)
+            top_level.grab_set()
+            top_level.focus_set()
+            top_level.lift()
 
     def ventas(self):
         self.show_frames(Ventas)
