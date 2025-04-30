@@ -56,7 +56,7 @@ class Inventario(tk.Frame):
         boton_agregar = tk.Button(labelframe, text="Ingresa", font="sans 14 bold", bg="#22CBA6", command=self.registrar)
         boton_agregar.place(x=80, y=340, width=240, height=40)
 
-        boton_editar = tk.Button(labelframe, text="Editar", font="sans 14 bold", bg="#22CBA6")
+        boton_editar = tk.Button(labelframe, text="Editar", font="sans 14 bold", bg="#22CBA6", command=self.editarProducto)
         boton_editar.place(x=80, y=400, width=240 , height=40 )
 
         #Creando tabla en la parte derecha
@@ -117,8 +117,8 @@ class Inventario(tk.Frame):
         result =  self.ejeConsulta(consulta)
         for elemento in result:
             try: 
-                precioGS = "GS {:,.0f}".format(float(elemento[3])) if elemento[3] else ""
-                costoGS = "GS {:,.0f}".format(float(elemento[4])) if elemento[4] else ""
+                precioGS = "{:,.0f} Gs".format(float(elemento[3])) if elemento[3] else ""
+                costoGS = "{:,.0f} GS".format(float(elemento[4])) if elemento[4] else ""
             except ValueError: 
                 precioGS = elemento[3]
                 costoGS = elemento[4]
@@ -171,11 +171,11 @@ class Inventario(tk.Frame):
             return
         
         itemID = self.tre.item(seleccion)["text"]
-        itemValues = self.tre.item(seleccion)["Values"]
+        itemvalues = self.tre.item(seleccion)["values"]
         
         ventanaEditar = Toplevel(self)
         ventanaEditar.title("Editar producto")
-        ventanaEditar.geometry(400*400)
+        ventanaEditar.geometry("400x400")
         ventanaEditar.config(bg="#C6D9E3")
         
         # Para modificar "nombre"
@@ -183,33 +183,62 @@ class Inventario(tk.Frame):
         lbl_nombre.grid(row=0, column=0, padx=1, pady=10)
         entry_nombre = Entry(ventanaEditar, font="sans 14 bold")
         entry_nombre.grid(row=0, column=1, padx=10, pady=10)
-        entry_nombre.insert(0, itemValues[1])
+        entry_nombre.insert(0, itemvalues[1])
         
         # Para modificar "proveedor"
-        lbl_proveedor = Label(ventanaEditar, text="ProveedorL", font="sans 14 bold", bg="#C6D9E3")
+        lbl_proveedor = Label(ventanaEditar, text="Proveedor:", font="sans 14 bold", bg="#C6D9E3")
         lbl_proveedor.grid(row=1, column=0, padx=1, pady=10)
         entry_proveedor = Entry(ventanaEditar, font="sans 14 bold")
         entry_proveedor.grid(row=1, column=1, padx=10, pady=10)
-        entry_proveedor.insert(0, itemValues[2])
+        entry_proveedor.insert(0, itemvalues[2])
         
         # Para modificar "precio"
         lbl_precio = Label(ventanaEditar, text="Precio:", font="sans 14 bold", bg="#C6D9E3")
         lbl_precio.grid(row=2, column=0, padx=1, pady=10)
         entry_precio = Entry(ventanaEditar, font="sans 14 bold")
         entry_precio.grid(row=2, column=1, padx=10, pady=10)
-        entry_precio.insert(0, itemValues[3].split()[0].replace(",",""))
+        entry_precio.insert(0, itemvalues[3].split()[0].replace(",",""))
         
         # Para modificar "costo"
         lbl_costo = Label(ventanaEditar, text="Costo:", font="sans 14 bold", bg="#C6D9E3")
         lbl_costo.grid(row=3, column=0, padx=1, pady=10)
         entry_costo = Entry(ventanaEditar, font="sans 14 bold")
         entry_costo.grid(row=3, column=1, padx=10, pady=10)
-        entry_costo.insert(0, itemValues[4].split()[0].replace(",",""))
+        entry_costo.insert(0, itemvalues[4].split()[0].replace(",",""))
         
         # Para modificar "stock"
         lbl_stock = Label(ventanaEditar, text="Stock:", font="sans 14 bold", bg="#C6D9E3")
         lbl_stock.grid(row=4, column=0, padx=1, pady=10)
         entry_stock = Entry(ventanaEditar, font="sans 14 bold")
         entry_stock.grid(row=4, column=1, padx=10, pady=10)
-        entry_stock.insert(0, itemValues[5])
+        entry_stock.insert(0, itemvalues[5])
         
+        # Función para guardar los cambios tras editar un producto
+        def guardarCambios():
+            nombre = entry_nombre.get()
+            proveedor = entry_proveedor.get()
+            precio = entry_precio.get()
+            costo = entry_costo.get()
+            stock = entry_stock.get()
+            
+            if not (nombre and proveedor and precio and costo and stock): 
+                messagebox.showwarning(title="Guardar cambios", message="Rellene todos los campos")
+                return
+            
+            try:
+                precio = float(precio.replace(",", ""))
+                costo =  float(costo.replace(",", ""))     
+            except ValueError:
+                messagebox.showwarning("Guardar cambios", "Ingrese valores numéricos válidos para precio y costo.")
+                return
+            
+            consulta = "UPDATE Inventario SET nombre=?, proveedor=?, precio=?, costo=?, stock=? WHERE id=?"
+            parametros = (nombre, proveedor, precio, costo, stock, itemID)
+            self.ejeConsulta(consulta, parametros)
+            
+            self.actualizarInventario()
+            
+            ventanaEditar.destroy()
+        
+        btn_guardar = Button(ventanaEditar, text="Guardar cambios", font="sans 14 bold", command=guardarCambios)
+        btn_guardar.place(x=80, y=250, width=240, height=40)
