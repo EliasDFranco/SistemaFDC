@@ -161,3 +161,55 @@ class Inventario(tk.Frame):
             else: 
                 messagebox.showwarning(title="ERROR", message="Asegurese que todos los campos estén completos")
                 self.mostrarInventario()
+        
+        
+    # Creando la función para poder editar los productos        
+    def editarProducto(self):
+        seleccion = self.tre.selection()
+        if not seleccion: 
+            messagebox.showwarning(title="Editar producto", message="Seleccione un producto para empezar a editar")
+            return
+        
+        itemID = self.tre.item(seleccion)["text"]
+        itemValues = self.tre.item(seleccion)["Values"]
+        
+        ventanaEditar = Toplevel(self)
+        ventanaEditar.title("Editar producto")
+        ventanaEditar.geometry(400*400)
+        ventanaEditar.config(bg="#C6D9E3")
+        
+        # Para modificar "nombre"
+        lbl_nombre = Label(ventanaEditar, text="Nombre:", font="sans 14 bold", bg="#C6D9E3")
+        lbl_nombre.grid(row=0, column=0, padx=1, pady=10)
+        entry_nombre = Entry(ventanaEditar, font="sans 14 bold")
+        entry_nombre.grid(row=0, column=1, padx=10, pady=10)
+        entry_nombre.insert(0, itemValues[1])
+        
+        # Para modificar "proveedor"
+        lbl_proveedor = Label(ventanaEditar, text="ProveedorL", font="sans 14 bold", bg="#C6D9E3")
+        lbl_proveedor.grid(row=1, column=0, padx=1, pady=10)
+        entry_proveedor = Entry(ventanaEditar, font="sans 14 bold")
+        entry_proveedor.grid(row=1, column=1, padx=10, pady=10)
+        entry_proveedor.insert(0, itemValues[2])
+        
+        # Para modificar "precio"
+        lbl_precio = Label(ventanaEditar, text="Precio:", font="sans 14 bold", bg="#C6D9E3")
+        lbl_precio.grid(row=2, column=0, padx=1, pady=10)
+        entry_precio = Entry(ventanaEditar, font="sans 14 bold")
+        entry_precio.grid(row=2, column=1, padx=10, pady=10)
+        entry_precio.insert(0, itemValues[3].split()[0].replace(",",""))
+        
+        # Para modificar "costo"
+        lbl_costo = Label(ventanaEditar, text="Costo:", font="sans 14 bold", bg="#C6D9E3")
+        lbl_costo.grid(row=3, column=0, padx=1, pady=10)
+        entry_costo = Entry(ventanaEditar, font="sans 14 bold")
+        entry_costo.grid(row=3, column=1, padx=10, pady=10)
+        entry_costo.insert(0, itemValues[4].split()[0].replace(",",""))
+        
+        # Para modificar "stock"
+        lbl_stock = Label(ventanaEditar, text="Stock:", font="sans 14 bold", bg="#C6D9E3")
+        lbl_stock.grid(row=4, column=0, padx=1, pady=10)
+        entry_stock = Entry(ventanaEditar, font="sans 14 bold")
+        entry_stock.grid(row=4, column=1, padx=10, pady=10)
+        entry_stock.insert(0, itemValues[5])
+        
