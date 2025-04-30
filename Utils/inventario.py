@@ -53,7 +53,7 @@ class Inventario(tk.Frame):
         self.stock = ttk.Entry(labelframe, font="sans 14 bold")
         self.stock.place(x=140, y=260, width=240, height=40)
 
-        boton_agregar = tk.Button(labelframe, text="Ingresa", font="sans 14 bold", bg="#22CBA6")
+        boton_agregar = tk.Button(labelframe, text="Ingresa", font="sans 14 bold", bg="#22CBA6", command=self.registrar)
         boton_agregar.place(x=80, y=340, width=240, height=40)
 
         boton_editar = tk.Button(labelframe, text="Editar", font="sans 14 bold", bg="#22CBA6")
@@ -131,3 +131,33 @@ class Inventario(tk.Frame):
         self.mostrarInventario()
         
         messagebox.showinfo("Actualización", "El inventario ha sido actualizado correctamente")
+        
+# 30-04-2025
+    def registrar (self):
+        result = self.tre.get_children()
+        for x in result:
+            self.tre.delete(x)
+        nombre = self.nombre.get()
+        prov =  self.proveedor.get()
+        precio = self.precio.get()
+        costo = self.costo.get()
+        stock = self.stock.get()
+        if self.validacion(nombre, prov, precio, costo, stock):
+            try:
+                consulta = "INSERT INTO Inventario VALUES(?,?,?,?,?,?)" #Ingresamos a la Bd 
+                parametros = (None, nombre, prov, precio, costo, stock)
+                
+                #Lo mostramos en el Tre  View 
+                self.ejeConsulta(consulta, parametros)
+                self.mostrarInventario 
+                
+                self.nombre.delete(0, END)
+                self.proveedor.delete(0, END)
+                self.precio.delete(0, END)
+                self.costo.delete(0, END)
+                self.stock.delete(0, END)
+            except Exception as e:
+                messagebox.showwarning(title="ERROR", message=f"Error al registrar el producto: {e}")
+            else: 
+                messagebox.showwarning(title="ERROR", message="Asegurese que todos los campos estén completos")
+                self.mostrarInventario()
