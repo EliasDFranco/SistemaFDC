@@ -122,7 +122,7 @@ class Inventario(tk.Frame):
             except ValueError: 
                 precioGS = elemento[3]
                 costoGS = elemento[4]
-            self.tre.insert("", 0 , text=elemento[0], values=(elemento[1], elemento[2], precioGS, costoGS, elemento[5]))
+            self.tre.insert("", 0 , text=elemento[0], values=(elemento[0], elemento[1], elemento[2], precioGS, costoGS, elemento[5]))
             
     def actualizarInventario(self):
         for item in self.tre.get_children():
