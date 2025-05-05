@@ -38,11 +38,26 @@ class Container(tk.Frame):
         frame1 = tk.Frame(self, bg="#BAFBEB")
         frame1.pack()
         frame1.place(x=0, y=0, width=800, height=400)
-
+        
+        # Configurando par que se muestre un icono dentro del botón ventas
+        imagen_pil = Image.open("iconos/compras.png")
+        imagen_resize = imagen_pil.resize((40,40))
+        imagen_tk = ImageTk.PhotoImage(imagen_resize)
+        
         boton_ventas = Button(frame1, bg="#50C878", fg="black", font="helvetica 20 bold", text="Ir a ventas", command=self.ventas)
+        boton_ventas.config(image=imagen_tk, compound=LEFT, padx=30) # Aqui lo agrego dentro de botón
+        boton_ventas.image = imagen_tk
         boton_ventas.place(x=500, y=30, width=240, height=60)
 
+
+        # Configurando par que se muestre un icono dentro del botón inventario
+        imagen_pil = Image.open("iconos/inventario.png")
+        imagen_resize = imagen_pil.resize((40,40))
+        imagen_tk = ImageTk.PhotoImage(imagen_resize)
+        
         boton_inventario = Button(frame1, bg="#50C878", fg="black", font="helvetica 20 bold", text="Ir al inventario", command=self.inventario)
+        boton_inventario.config(image=imagen_tk, compound=LEFT, padx=-10) # También agregamos dentro del botón
+        boton_inventario.image = imagen_tk
         boton_inventario.place(x=500, y=130, width=240, height=60)
 
         self.logo_image = Image.open("imagenes/cajaregistradora.png")
