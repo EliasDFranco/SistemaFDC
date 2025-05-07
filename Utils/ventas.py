@@ -157,7 +157,7 @@ class Ventas(tk.Frame):
         for child in self.tree.get_children():
             subtotal = float(self.tree.item(child, "values") [3])
             total += subtotal
-        self.label_sumaTotal.config(text="Total a pagar: Gs {total:.0f}")
+        self.label_sumaTotal.config(text=f"Total a pagar: Gs {total:.0f}")
 
 #Función para registrar los productos
     def registrar(self):
