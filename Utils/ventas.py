@@ -189,11 +189,11 @@ class Ventas(tk.Frame):
         else:
             messagebox.showerror("Error","Debe de completar todos los campos")
 
-    def verificarStock(self, nombre, producto, cantidad):
+    def verificarStock(self, nombre, cantidad):
         try:
             conn = sqlite3.connect(self.db_name)
             c = conn.cursor()
-            c.execute("SELECT stock FROM inventarios WHERE nombre = ?",(nombre))
+            c.execute("SELECT stock FROM inventario WHERE nombre = ?",(nombre,))
             stock = c.fetchone()
             if stock and stock[0] >= cantidad:
                 return True
