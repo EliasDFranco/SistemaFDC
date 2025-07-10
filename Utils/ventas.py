@@ -265,7 +265,7 @@ class Ventas(tk.Frame):
                     c.execute("INSERT INTO ventas (factura, nombre_articulo, valor_articulo, cantidad, subtotal) VALUES(?,?,?,?,?)",
                     (self.numeroFacturaActual, nombreProducto, float(item[1]), cantidadVendida, float(item[3])))
 
-                    c.execute("UPDATE inventario SET stock - stock - ? WHERE = ?", (cantidadVendida, nombreProducto))
+                    c.execute("UPDATE inventario SET stock = stock - ? WHERE = ?", (cantidadVendida, nombreProducto))
 
                 conn.commit()
                 messagebox.showinfo("Exito", "Venta registrada exitosamente")
