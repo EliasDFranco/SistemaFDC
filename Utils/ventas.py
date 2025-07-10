@@ -2,12 +2,23 @@ from tkinter import *
 import tkinter as tk 
 from tkinter import ttk, messagebox
 import sqlite3 #Importamos la libreria de la BD
+#Importaos reportlab y sus funciones
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Table
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+import sys
+import os
+import datetime
+
 class Ventas(tk.Frame):
-    db_name = "database_fdc.db" #Variable declarada para hacer la conexión con el archivo de la DB
+    db_name = "Database/database_fdc.db" #Variable declarada para hacer la conexión con el archivo de la DB
     
     def __init__(self, parent):
         super().__init__(parent)
         self.numeroFacturaActual = self.obtener_numeroFacturaActual()
+        self.numeroFactura = tk.StringVar(value=self.numeroFacturaActual) # 28-04-2025 Agregando la inicialización del atributo de 
+                                                                                # numeroFacturaActual al constructur
         self.widgets()
         self.mostrarNumeroFactura()
         
@@ -146,7 +157,7 @@ class Ventas(tk.Frame):
         for child in self.tree.get_children():
             subtotal = float(self.tree.item(child, "values") [3])
             total += subtotal
-        self.label_sumaTotal.config(text="Total a pagar: Gs {total:.0f}")
+        self.label_sumaTotal.config(text=f"Total a pagar: Gs {total:.0f}")
 
 #Función para registrar los productos
     def registrar(self):
@@ -157,7 +168,7 @@ class Ventas(tk.Frame):
         if producto and precio and cantidad:
             try:
                 cantidad = int(cantidad)
-                if not self.verificarStock(producto, cantidad):
+                if not self.verificarStock( producto, cantidad):
                     messagebox.showerror("Error", "Stock insuficiente para el producto seleccionado")
                     return  
                 precio = float(precio)
@@ -178,11 +189,11 @@ class Ventas(tk.Frame):
         else:
             messagebox.showerror("Error","Debe de completar todos los campos")
 
-    def verificarStock(self, nombre, producto, cantidad):
+    def verificarStock(self, nombre, cantidad):
         try:
             conn = sqlite3.connect(self.db_name)
             c = conn.cursor()
-            c.execute("SELECT stock FROM inventarios WHERE nombre = ?",(nombre))
+            c.execute("SELECT stock FROM inventario WHERE nombre = ?",(nombre,))
             stock = c.fetchone()
             if stock and stock[0] >= cantidad:
                 return True
@@ -255,17 +266,21 @@ class Ventas(tk.Frame):
             conn = sqlite3.connect(self.db_name)     
             c = conn.cursor()
             try:
+                productos =  [] # 5/06/25 Creamos una variable que almacene una lista vacía, para guardar los datos en la consulta
                 for child in self.tree.get_children():
                     item = self.tree(child, "values")
-                    nombreProducto = item[8]
+                    producto = item[0]
+                    precio = item[1]
                     cantidadVendida = int(item[2])
-                    if not self.verificarStock(nombreProducto, cantidadVendida):
-                        messagebox.showerror("Error", f"Stock insuficiente para el producto: {nombreProducto}")
+                    subtotal = float(item[4])
+                    productos.append([producto, precio, cantidadPagada, subtotal])
+                    if not self.verificarStock(producto, cantidadVendida):
+                        messagebox.showerror("Error", f"Stock insuficiente para el producto: {producto}")
 
                     c.execute("INSERT INTO ventas (factura, nombre_articulo, valor_articulo, cantidad, subtotal) VALUES(?,?,?,?,?)",
-                    (self.numeroFacturaActual, nombreProducto, float(item[1]), cantidadVendida, float(item[3])))
+                    (self.numeroFacturaActual, producto, float(precio), cantidadVendida, subtotal))
 
-                    c.execute("UPDATE inventario SET stock = stock - ? WHERE = ?", (cantidadVendida, nombreProducto))
+                    c.execute("UPDATE inventario SET stock - stock - ? WHERE = ?", (cantidadVendida, nombreProducto))
 
                 conn.commit()
                 messagebox.showinfo("Exito", "Venta registrada exitosamente")
@@ -278,6 +293,10 @@ class Ventas(tk.Frame):
                 self.label_suma_total.config(text="Total a pagar: Gs 0")
                 
                 ventanaPago.destroy() #Destroy para que se cierre la ventana
+            
+                fecha = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%D") # Función para tiempo en años, meses y días | Horas, minutos y segundos
+            
+                self.generarFacturaPDF(productos, total, self.numeroFacturaActual - 1, fecha)
 
             except sqlite3.Error as e:
                 conn.rollback()
@@ -287,7 +306,47 @@ class Ventas(tk.Frame):
 
         except ValueError:
             messagebox.showerror("Error", "Cantidad pagada no válida")
-
+    
+    def generarFacturaPDF(self, productos, total, facturaNum, fecha):
+        archivoPDF = f"Facturas/factura_{facturaNum}.pdf"
+        
+        c = canvas.Canvas(archivoPDF, pagesize=letter)
+        width, height = letter
+        
+        styles = getSampleStyleSheet()
+        estiloTitulo = styles("Title")
+        estiloNormal = styles("Normal")
+        
+        # Para el N° de la factura
+        c.setFont("Time New Romans", 16)
+        c.drawString(100, height - 50, f"Factura Número: {facturaNum} ")
+        
+        #Para la fecha de la facturación
+        c.setFont("Time New Romans", 13)
+        c.drawString(100, height - 70, f"Fecha: {fecha}")
+        
+        #Para la info de la venta    
+        c.setFont("Time New Romans", 12)
+        c.drawString(100, height - 100, f"Información de la venta:")
+        
+        datos = [["Productos", "precio", "cantidad", "subtotal" ]] + productos
+        table = Table(datos)
+        table.wrapOn(c, width, height)
+        table.drawOn(c, 100, height - 200)
+        
+        c.setFont("Times New Romans", 12)
+        c.drawSring(100, height - 250, f"Total a pagar: Gs {total:.0f}")
+        
+        c.setFont("Time New Romans", 12)
+        c.drawString(100, height -300, "Muchas gracias por su compra, vuelva pronto")
+        
+        c.save()
+        
+        messagebox.showinfo("Factura Generada", f"La factura N°{facturaNum}, ha sido creada correctamente")
+        
+        os.startfile(os.path.abspath.archivoPDF)
+        
+    
     def obtener_numeroFacturaActual(self):
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
@@ -305,7 +364,7 @@ class Ventas(tk.Frame):
             conn.close()
 
     def mostrarNumeroFactura(self):
-        self.NumeroFactura.set(self.numeroFacturaActual)
+        self.numeroFactura.set(self.numeroFacturaActual)
 
     def abrirVentanaFactura(self):
         ventanaFacturas = Toplevel
